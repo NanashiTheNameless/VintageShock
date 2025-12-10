@@ -1,0 +1,16 @@
+{
+  "name": "VintageShock",
+  "modid": "vintageshock",
+  "version": "0.0.1",
+  "description": "VintageShock - Shocking Haptic Feedback for Vintage Story via the OpenShock API",
+  "website": "https://github.com/NanashiTheNameless/VintageShock",
+  "authors": ["NanashiTheNameless"],
+  "type": "code",
+  "side": "universal",
+  "RequiredOnServer": true,
+  "RequiredOnClient": true,
+  "dependencies": {
+    "game": "1.21.5",
+    "configlib": "*"
+  }
+}

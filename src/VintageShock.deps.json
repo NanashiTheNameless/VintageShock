@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETFramework,Version=v4.7.2",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETFramework,Version=v4.7.2": {
+      "VintageShock/1.0.0": {
+        "runtime": {
+          "VintageShock.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "VintageShock/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "version": "1.0.0"
+    }
+  }
+}

@@ -1,0 +1,120 @@
+name: Bug Report
+description: Report a bug or issue with VintageShock
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched the existing issues and this bug has not been reported before
+          required: true
+        - label: I have tested this with the latest version of VintageShock
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened instead.
+      placeholder: What happened instead?
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: VintageShock Version
+      description: Which version of VintageShock are you using? (e.g., 0.0.1)
+      placeholder: "0.0.1"
+    validations:
+      required: true
+
+  - type: input
+    id: vintage-story-version
+    attributes:
+      label: Vintage Story Version
+      description: Which version of Vintage Story are you running?
+      placeholder: "1.21.5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows 10
+        - Windows 11
+        - macOS (Intel)
+        - macOS (Apple Silicon)
+        - Linux (Ubuntu/Debian)
+        - Linux (Fedora)
+        - Linux (Arch)
+        - Linux (Flatpak)
+        - Linux (Other)
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: OpenShock Device Model
+      description: What OpenShock device are you using?
+      placeholder: "e.g., OpenShock v0.x.x"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code.
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here (3MF files, G-code, settings, etc.)

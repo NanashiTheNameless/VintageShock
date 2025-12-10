@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "settings": {
+    "boolean": {
+      "ENABLED": {
+        "name": "enabled",
+        "weight": 0.1,
+        "comment": "Enable or disable VintageShock haptic feedback",
+        "default": true
+      },
+      "ON_PLAYER_DEATH": {
+        "name": "on-player-death",
+        "weight": 3.1,
+        "comment": "Trigger shock when the player dies",
+        "default": true
+      },
+      "ON_PLAYER_DAMAGE": {
+        "name": "on-player-damage",
+        "weight": 3.2,
+        "comment": "Trigger shock when the player takes damage",
+        "default": false
+      },
+      "ON_PLAYER_HURT_OTHER": {
+        "name": "on-player-hurt-other",
+        "weight": 3.3,
+        "comment": "Trigger shock when the player hurts another entity",
+        "default": false
+      }
+    },
+    "string": {
+      "API_URL": {
+        "name": "api-url",
+        "weight": 1.1,
+        "comment": "The OpenShock API endpoint URL",
+        "default": "https://api.openshock.app/"
+      },
+      "API_TOKEN": {
+        "name": "api-token",
+        "weight": 1.2,
+        "comment": "Your OpenShock API authentication token",
+        "default": "your-api-token-here"
+      },
+      "DEVICE_ID": {
+        "name": "device-id",
+        "weight": 1.3,
+        "comment": "The ID of your haptic device on OpenShock",
+        "default": "your-device-id-here"
+      }
+    },
+    "integer": {
+      "INTENSITY": {
+        "name": "intensity",
+        "weight": 2.1,
+        "comment": "Intensity of the shock (0-100)",
+        "default": 30,
+        "range": {
+          "min": 0,
+          "max": 100,
+          "step": 1
+        }
+      }
+    },
+    "float": {
+      "DURATION_SEC": {
+        "name": "duration-sec",
+        "weight": 2.2,
+        "comment": "Duration of the shock in seconds (5-65)",
+        "default": 1.0,
+        "range": {
+          "min": 0.5,
+          "max": 65,
+          "step": 0.5
+        }
+      }
+    }
+  },
+  "formatting": [
+    {
+      "type": "title",
+      "title": "General Settings",
+      "weight": 0.0
+    },
+    {
+      "type": "title",
+      "title": "OpenShock API Configuration",
+      "weight": 1.0
+    },
+    {
+      "type": "title",
+      "title": "Shock Parameters",
+      "weight": 2.0
+    },
+    {
+      "type": "title",
+      "title": "Trigger Events",
+      "weight": 3.0
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <GameDir Condition="'$(GameDir)' == ''">/opt/vintagestory</GameDir>
+    <ModOutputDir>$(MSBuildThisFileDirectory)..</ModOutputDir>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="VintagestoryAPI">
+      <HintPath>$(GameDir)/VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="VintagestoryLib">
+      <HintPath>$(GameDir)/VintagestoryLib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(GameDir)/Lib/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CleanOldZips" BeforeTargets="Build">
+    <Message Text="Cleaning old mod zip files" Importance="high" />
+    <Delete Files="$(ModOutputDir)\VintageShock-*.zip" />
+  </Target>
+
+  <Target Name="CreateModZip" AfterTargets="Build">
+    <Message Text="Creating VintageShock mod distribution zip" Importance="high" />
+    
+    <!-- Extract version from modinfo.json -->
+    <Exec Command="grep -oP '&quot;version&quot;:\s*&quot;\K[^&quot;]+' $(MSBuildThisFileDirectory)..\modinfo.json" ConsoleToMSBuild="true" ContinueOnError="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="ModVersion" />
+    </Exec>
+    
+    <!-- Fallback to 0.0.0 if extraction fails -->
+    <PropertyGroup>
+      <ModVersion Condition="'$(ModVersion)' == ''">0.0.0</ModVersion>
+    </PropertyGroup>
+    
+    <!-- Create temporary directory for zip contents -->
+    <MakeDir Directories="$(ModOutputDir)/mods/VintageShock" />
+    
+    <!-- Copy mod files -->
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(ModOutputDir)/mods/VintageShock" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)$(AssemblyName).deps.json" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(MSBuildThisFileDirectory)$(AssemblyName).deps.json')" />
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).pdb" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(OutputPath)$(AssemblyName).pdb')" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\modinfo.json" DestinationFolder="$(ModOutputDir)/mods/VintageShock" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\LICENSE.md" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(MSBuildThisFileDirectory)..\LICENSE.md')" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\modicon.png" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(MSBuildThisFileDirectory)..\modicon.png')" />
+    
+    <!-- Copy entire assets folder -->
+    <ItemGroup>
+      <AssetFiles Include="$(MSBuildThisFileDirectory)..\assets\**" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(ModOutputDir)/mods/VintageShock/assets/%(RecursiveDir)" SkipUnchangedFiles="false" />
+    
+    <!-- Clean up duplicates and create zip file -->
+    <ItemGroup>
+      <DuplicateAssets Include="$(ModOutputDir)/mods/VintageShock/assets/home/**" />
+    </ItemGroup>
+    <Delete Files="@(DuplicateAssets)" />
+    
+    <ZipDirectory SourceDirectory="$(ModOutputDir)/mods/VintageShock" DestinationFile="$(ModOutputDir)/VintageShock-$(ModVersion).zip" Overwrite="true" />
+    
+    <Message Text="VintageShock mod zip created at $(ModOutputDir)/VintageShock-$(ModVersion).zip" Importance="high" />
+  </Target>
+
+  <Target Name="CleanBuildAssets" AfterTargets="CreateModZip">
+    <Message Text="Cleaning build artifacts" Importance="high" />
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)bin" />
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)obj" />
+    <RemoveDir Directories="$(ModOutputDir)/mods" />
+  </Target>
+</Project>

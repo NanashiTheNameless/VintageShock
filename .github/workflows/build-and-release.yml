@@ -64,6 +64,17 @@ jobs:
         path: VintageShock-*.zip
         compression-level: 0
 
+    - name: Deploy nightly build
+      if: github.ref_type != 'tag'
+      uses: NanashiTheNameless/deploy-nightly@master
+      with:
+        upload_url: https://uploads.github.com/repos/NanashiTheNameless/VintageShock/releases/268950530/assets{?name,label}
+        release_id: 268950530
+        asset_path: VintageShock*.zip
+        asset_name: VintageShock-AutoBuildNightly-$$.zip
+        asset_content_type: text/plain
+        max_releases: 6
+
     - name: Update release tag
       if: github.ref_type != 'tag'
       uses: NanashiTheNameless/action-create-tag@main
@@ -72,14 +83,3 @@ jobs:
         tag_exists_error: false
         force_push_tag: true
         message: "Nightly Auto Build"
-
-    - name: Deploy nightly build
-      if: github.ref_type != 'tag'
-      uses: NanashiTheNameless/deploy-nightly@master
-      with:
-        upload_url: https://uploads.github.com/repos/NanashiTheNameless/VintageShock/releases/268950530/assets{?name,label}
-        release_id: 268950530
-        asset_path: VintageShock-*.zip
-        asset_name: VintageShock-AutoBuildNightly-$$.zip
-        asset_content_type: text/plain
-        max_releases: 6

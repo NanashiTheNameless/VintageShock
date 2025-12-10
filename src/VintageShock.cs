@@ -187,10 +187,10 @@ public class VintageShockSystem : ModSystem
         capi?.Logger.Notification("[VintageShock] Death message received from server");
         if (StaticSettings?.Enabled == true && StaticSettings.OnPlayerDeath && capi != null)
         {
-            capi.Logger.Notification($"[VintageShock] Triggering death shock (2x duration: {StaticSettings.DurationSec * 2}s)");
+            capi.Logger.Notification($"[VintageShock] Triggering death shock");
             // Trigger shock with longer duration for death
             _ = TriggerShockAsyncStatic(StaticSettings.ApiToken, StaticSettings.DeviceId,
-                                       StaticSettings.DurationSec * 2, StaticSettings.Intensity, capi);
+                                       StaticSettings.DurationSec, StaticSettings.Intensity, capi);
         }
         else
         {
@@ -408,7 +408,7 @@ public class VintageShockSystem : ModSystem
             using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, _cachedApiUrl);
             request.Headers.Add("Open-Shock-Token", apiToken);
             request.Headers.Add("Accept", "application/json");
-            request.Headers.Add("User-Agent", "VintageShock/0.0.1");
+            request.Headers.Add("User-Agent", "VintageShock/0.0.2");
             request.Content = new System.Net.Http.StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             await HttpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);

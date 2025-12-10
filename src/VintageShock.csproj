@@ -30,20 +30,20 @@
 
   <Target Name="CreateModZip" AfterTargets="Build">
     <Message Text="Creating VintageShock mod distribution zip" Importance="high" />
-    
+
     <!-- Extract version from modinfo.json -->
     <Exec Command="grep -oP '&quot;version&quot;:\s*&quot;\K[^&quot;]+' $(MSBuildThisFileDirectory)..\modinfo.json" ConsoleToMSBuild="true" ContinueOnError="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="ModVersion" />
     </Exec>
-    
+
     <!-- Fallback to 0.0.0 if extraction fails -->
     <PropertyGroup>
       <ModVersion Condition="'$(ModVersion)' == ''">0.0.0</ModVersion>
     </PropertyGroup>
-    
+
     <!-- Create temporary directory for zip contents -->
     <MakeDir Directories="$(ModOutputDir)/mods/VintageShock" />
-    
+
     <!-- Copy mod files -->
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(ModOutputDir)/mods/VintageShock" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)$(AssemblyName).deps.json" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(MSBuildThisFileDirectory)$(AssemblyName).deps.json')" />
@@ -51,21 +51,21 @@
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\modinfo.json" DestinationFolder="$(ModOutputDir)/mods/VintageShock" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\LICENSE.md" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(MSBuildThisFileDirectory)..\LICENSE.md')" />
     <Copy SourceFiles="$(MSBuildThisFileDirectory)..\modicon.png" DestinationFolder="$(ModOutputDir)/mods/VintageShock" Condition="Exists('$(MSBuildThisFileDirectory)..\modicon.png')" />
-    
+
     <!-- Copy entire assets folder -->
     <ItemGroup>
       <AssetFiles Include="$(MSBuildThisFileDirectory)..\assets\**" />
     </ItemGroup>
     <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(ModOutputDir)/mods/VintageShock/assets/%(RecursiveDir)" SkipUnchangedFiles="false" />
-    
+
     <!-- Clean up duplicates and create zip file -->
     <ItemGroup>
       <DuplicateAssets Include="$(ModOutputDir)/mods/VintageShock/assets/home/**" />
     </ItemGroup>
     <Delete Files="@(DuplicateAssets)" />
-    
+
     <ZipDirectory SourceDirectory="$(ModOutputDir)/mods/VintageShock" DestinationFile="$(ModOutputDir)/VintageShock-$(ModVersion).zip" Overwrite="true" />
-    
+
     <Message Text="VintageShock mod zip created at $(ModOutputDir)/VintageShock-$(ModVersion).zip" Importance="high" />
   </Target>
 

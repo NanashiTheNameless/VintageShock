@@ -132,11 +132,9 @@ Authentication: AOI token in `Open-Shock-Token` header
 
 ## Notes
 
-- **Client-side only**: This mod runs entirely on your client and doesn't need to be installed on servers
 - Shocks are triggered asynchronously to prevent game lag
 - Configuration is managed through ConfigLib
 - ConfigLib's ImGui-based GUI doesn't support clipboard paste - edit the YAML file directly for easier token/device ID entry
-- All logging appears in the Vintage Story client log
 
 ## Support
 

@@ -103,7 +103,7 @@ The mod will be packaged as `VintageShock-<version>.zip` in the workspace root.
 
 1. Download or build `VintageShock.zip`
 2. Copy the zip file to your Vintage Story `Mods` folder
-3. Install [ConfigLib](https://mods.vintagestory.at/configlib) if not already installed
+3. Install [ConfigLib](https://mods.vintagestory.at/configlib) and [ImGui](<https://mods.vintagestory.at/imguiif>) not already installed
 4. Start the game and configure via ConfigLib settings menu or edit `ModConfig/vintageshock.yaml`
 
 ## Usage

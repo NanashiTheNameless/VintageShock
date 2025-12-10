@@ -2,7 +2,7 @@
 
 Shocking Haptic Feedback for Vintage Story via the OpenShock API based on in-game events.
 
-## !! **NON-FREE License Warning**
+## !! **NON-FREE/PROPRIETARY License Warning**
 
 This software is NOT OSI Compliant!\
 See the [LICENSE.md](<LICENSE.md>) file for more complete details.

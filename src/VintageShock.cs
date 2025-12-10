@@ -30,6 +30,8 @@ public class VintageShockSystem : ModSystem
     private ICoreServerAPI? sapi;
     private Harmony? harmony;
     private IClientNetworkChannel? clientNetworkChannel;
+    private static long StaticDecayListenerId = 0;
+    private static VintageShockSystem? StaticInstance;
 
     // Configuration values - will be populated from config file
     private VintageShockSettings settings = new();
@@ -42,13 +44,57 @@ public class VintageShockSystem : ModSystem
     // Track damage cooldown
     private static long StaticLastDamageTime = 0;
 
+    // Track last shock time for ramp decay
+    private static long StaticLastShockTime = 0;
+
+    // Track last decay tick times independently for power and duration
+    private static long StaticLastPowerDecayTick = 0;
+    private static long StaticLastDurationDecayTick = 0;
+
     // Track last death time to prevent respawn shock
     private static long StaticLastDeathTime = 0;
+
+    // Track ramping state
+    private static int CurrentRampedIntensity = 0;
+    private static float CurrentRampedDuration = 0f;
+
+    private static void DebugLog(string message)
+    {
+        if (StaticSettings?.DebugMode == true)
+        {
+            try
+            {
+                // Sanitize angle brackets to avoid VS rich-text tag errors
+                string safe = message.Replace('<', '[').Replace('>', ']');
+                StaticCapi?.ShowChatMessage($"[VintageShock Debug] {safe}");
+            }
+            catch
+            {
+                // swallow debug logging errors
+            }
+        }
+    }
+
+    private static void ServerDebugLog(ICoreAPI api, string message)
+    {
+        if (StaticSettings?.DebugMode == true)
+        {
+            try
+            {
+                api.Logger.Notification($"[VintageShock Debug] {message}");
+            }
+            catch
+            {
+                // swallow debug logging errors
+            }
+        }
+    }
 
     public override void StartClientSide(ICoreClientAPI capi)
     {
         this.capi = capi;
         StaticCapi = capi;  // Store for Harmony patch access
+        StaticInstance = this;  // Store instance for static access
 
         // Load config FIRST so settings are available to patch methods
         LoadConfig();
@@ -170,6 +216,7 @@ public class VintageShockSystem : ModSystem
     {
         if (StaticSettings?.Enabled == true && StaticSettings.OnPlayerDamage && capi != null)
         {
+            DebugLog($"Damage message received: {msg.DamageAmount}");
             TriggerDamageShock(capi, msg.DamageAmount, null);
         }
     }
@@ -178,16 +225,16 @@ public class VintageShockSystem : ModSystem
     {
         if (StaticSettings?.Enabled == true && StaticSettings.OnPlayerHurtOther && capi != null)
         {
+            DebugLog($"Damage-other message received: {msg.DamageAmount}");
             TriggerDamageShock(capi, msg.DamageAmount, null);
         }
     }
 
     private void OnServerDeathMessage(VintageShockDeathMessage msg)
     {
-        capi?.Logger.Notification("[VintageShock] Death message received from server");
         if (StaticSettings?.Enabled == true && StaticSettings.OnPlayerDeath && capi != null)
         {
-            capi.Logger.Notification($"[VintageShock] Triggering death shock");
+            DebugLog("Death message received: triggering death shock");
             // Trigger shock with longer duration for death
             _ = TriggerShockAsyncStatic(StaticSettings.ApiToken, StaticSettings.DeviceId,
                                        StaticSettings.DurationSec, StaticSettings.Intensity, capi);
@@ -209,7 +256,86 @@ public class VintageShockSystem : ModSystem
         serverChannel.RegisterMessageType(typeof(VintageShockDeathMessage));
         StaticServerChannel = serverChannel; // Cache for patch performance
 
+        // Apply Harmony patch on server side only
+        if (!Harmony.HasAnyPatches(DomainCode))
+        {
+            harmony = new Harmony(DomainCode);
+
+            try
+            {
+                Type? entityType = Type.GetType("Vintagestory.API.Common.Entities.Entity, VintagestoryAPI");
+
+                if (entityType == null)
+                {
+                    foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        entityType = asm.GetType("Vintagestory.API.Common.Entities.Entity");
+                        if (entityType != null) break;
+                    }
+                }
+
+                if (entityType != null)
+                {
+                    var receiveDamageMethod = entityType.GetMethod("ReceiveDamage",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+                    if (receiveDamageMethod != null)
+                    {
+                        var patchMethod = typeof(VintageShockSystem).GetMethod("OnReceiveDamageDetectDamage",
+                            System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+                        if (patchMethod != null)
+                        {
+                            var harmonyMethod = new HarmonyLib.HarmonyMethod(patchMethod);
+                            harmony.Patch(receiveDamageMethod, prefix: harmonyMethod);
+                            sapi.Logger.Notification("[VintageShock] Harmony patch applied to Entity.ReceiveDamage");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                sapi.Logger.Error($"[VintageShock] Harmony patching error: {ex.Message}");
+            }
+        }
+
         sapi.Logger.Notification($"[VintageShock] Server initialized.");
+    }
+
+    private void OnClientGameTick(float deltaTime)
+    {
+        if (capi == null || StaticSettings == null) return;
+
+        // Check if we still need decay updates
+        bool needsDecay = (StaticSettings.EnablePowerRamping && CurrentRampedIntensity > StaticSettings.Intensity) ||
+                          (StaticSettings.EnableDurationRamping && CurrentRampedDuration > StaticSettings.DurationSec);
+
+        if (needsDecay)
+        {
+            long nowMs = capi.World.ElapsedMilliseconds;
+            UpdateDecay(nowMs);
+        }
+        else
+        {
+            // Nothing to decay, unregister listener to save performance
+            if (StaticDecayListenerId != 0)
+            {
+                capi.Event.UnregisterGameTickListener(StaticDecayListenerId);
+                StaticDecayListenerId = 0;
+            }
+        }
+    }
+
+    private static void EnsureDecayListenerActive()
+    {
+        if (StaticInstance?.capi != null && StaticDecayListenerId == 0 && StaticSettings != null)
+        {
+            // Only register if ramping is enabled
+            if (StaticSettings.EnablePowerRamping || StaticSettings.EnableDurationRamping)
+            {
+                StaticDecayListenerId = StaticInstance.capi.Event.RegisterGameTickListener(StaticInstance.OnClientGameTick, 1000);
+            }
+        }
     }
 
     public override void Dispose()
@@ -263,6 +389,52 @@ public class VintageShockSystem : ModSystem
                         settings.OnPlayerDamage = value.Contains("true", StringComparison.Ordinal);
                     else if (key.SequenceEqual("on-player-hurt-other"))
                         settings.OnPlayerHurtOther = value.Contains("true", StringComparison.Ordinal);
+                    else if (key.SequenceEqual("enable-power-ramping"))
+                        settings.EnablePowerRamping = value.Contains("true", StringComparison.Ordinal);
+                    else if (key.SequenceEqual("power-ramp-step-percent"))
+                    {
+                        if (float.TryParse(value, out float rampStepPct))
+                            settings.PowerRampStepPercent = rampStepPct;
+                    }
+                    else if (key.SequenceEqual("power-ramp-down-percent"))
+                    {
+                        if (float.TryParse(value, out float rampDownPct))
+                            settings.PowerRampDownPercentPerInterval = rampDownPct;
+                    }
+                    else if (key.SequenceEqual("power-ramp-down-interval-sec"))
+                    {
+                        if (float.TryParse(value, out float rampDownInterval))
+                            settings.PowerRampDownIntervalSec = rampDownInterval;
+                    }
+                    else if (key.SequenceEqual("max-intensity"))
+                    {
+                        if (int.TryParse(value, out int maxInt))
+                            settings.MaxIntensity = maxInt;
+                    }
+                    else if (key.SequenceEqual("enable-duration-ramping"))
+                        settings.EnableDurationRamping = value.Contains("true", StringComparison.Ordinal);
+                    else if (key.SequenceEqual("duration-ramp-step-percent"))
+                    {
+                        if (float.TryParse(value, out float durRampStepPct))
+                            settings.DurationRampStepPercent = durRampStepPct;
+                    }
+                    else if (key.SequenceEqual("duration-ramp-down-percent"))
+                    {
+                        if (float.TryParse(value, out float durRampDownPct))
+                            settings.DurationRampDownPercentPerInterval = durRampDownPct;
+                    }
+                    else if (key.SequenceEqual("duration-ramp-down-interval-sec"))
+                    {
+                        if (float.TryParse(value, out float durRampDownInterval))
+                            settings.DurationRampDownIntervalSec = durRampDownInterval;
+                    }
+                    else if (key.SequenceEqual("max-duration-sec"))
+                    {
+                        if (float.TryParse(value, out float maxDur))
+                            settings.MaxDurationSec = maxDur;
+                    }
+                    else if (key.SequenceEqual("debug-mode"))
+                        settings.DebugMode = value.Contains("true", StringComparison.Ordinal);
                 }
                         capi?.Logger.Notification("[VintageShock] Configuration loaded from ConfigLib YAML");
                         capi?.Logger.Notification(
@@ -289,6 +461,10 @@ public class VintageShockSystem : ModSystem
     /// </summary>
     public static bool OnReceiveDamageDetectDamage(Entity __instance, DamageSource damageSource, float damage)
     {
+        // Fast early exit if mod is disabled
+        if (StaticSettings?.Enabled != true)
+            return true;
+
         // Fast early exits
         if (__instance.Api?.Side != EnumAppSide.Server)
             return true;
@@ -300,6 +476,10 @@ public class VintageShockSystem : ModSystem
         // Check if this is a player entity taking damage
         if (__instance is EntityPlayer player && player.Player is IServerPlayer serverPlayer)
         {
+            // Skip if both death and damage triggers are disabled
+            if (!StaticSettings.OnPlayerDeath && !StaticSettings.OnPlayerDamage)
+                return true;
+
             // Check if fatal damage (health drops to 0)
             var healthTree = player.WatchedAttributes.GetTreeAttribute("health");
             if (healthTree != null)
@@ -311,9 +491,6 @@ public class VintageShockSystem : ModSystem
                 // Only trigger death if player currently has health (alive) and damage will kill them
                 bool isAlive = currentHealth > 0;
                 bool willDie = currentHealth - damage <= 0;
-                bool isMassiveDamage = damage >= 9999f;
-
-                __instance.Api.Logger.Debug($"[VintageShock] Player damage: current={currentHealth}, damage={damage}, isAlive={isAlive}, isMassive={isMassiveDamage}, willDie={willDie}");
 
                 // Check cooldown to prevent respawn spam (2 seconds)
                 long now = __instance.World.ElapsedMilliseconds;
@@ -327,7 +504,6 @@ public class VintageShockSystem : ModSystem
                 if (isAlive && willDie && !isInCooldown)
                 {
                     // Player is dying from this damage
-                    __instance.Api.Logger.Notification($"[VintageShock] Player death detected! Sending death message. Current HP: {currentHealth}, Damage: {damage}");
                     System.Threading.Interlocked.Exchange(ref StaticLastDeathTime, now);
                     serverChannel.SendPacket(new VintageShockDeathMessage(), serverPlayer);
                 }
@@ -336,15 +512,11 @@ public class VintageShockSystem : ModSystem
                     // Player took non-fatal damage while alive
                     serverChannel.SendPacket(new VintageShockDamageMessage { DamageAmount = damage }, serverPlayer);
                 }
-                else if (!isAlive || isInCooldown)
-                {
-                    __instance.Api.Logger.Debug($"[VintageShock] Ignoring damage - isAlive={isAlive}, isInCooldown={isInCooldown}");
-                }
                 // else: ignore damage to dead players (respawn processing)
             }
         }
         // Check if the damage source is a player (player damaged something else)
-        else if (damage > 0 && damageSource?.SourceEntity is EntityPlayer attackingPlayer &&
+        else if (StaticSettings.OnPlayerHurtOther && damage > 0 && damageSource?.SourceEntity is EntityPlayer attackingPlayer &&
                  attackingPlayer.Player is IServerPlayer attackerServerPlayer)
         {
             serverChannel.SendPacket(new VintageShockDamageOtherMessage { DamageAmount = damage }, attackerServerPlayer);
@@ -366,11 +538,15 @@ public class VintageShockSystem : ModSystem
         long now = capi.World.ElapsedMilliseconds;
         long lastDamageTime = System.Threading.Interlocked.Read(ref StaticLastDamageTime);
         if (lastDamageTime != 0 && now - lastDamageTime <= 500)
+        {
+            DebugLog($"Damage shock skipped: cooldown active ({now - lastDamageTime} ms)");
             return;
+        }
 
         System.Threading.Interlocked.Exchange(ref StaticLastDamageTime, now);
 
         // Trigger the shock asynchronously
+        DebugLog($"Triggering damage shock. Damage={damage}");
         _ = TriggerShockAsyncStatic(StaticSettings.ApiToken, StaticSettings.DeviceId,
                                    StaticSettings.DurationSec, StaticSettings.Intensity, capi);
     }
@@ -381,7 +557,125 @@ public class VintageShockSystem : ModSystem
         Timeout = TimeSpan.FromSeconds(5)
     };
 
-    // Cache the API URL to avoid repeated string operations
+    /// <summary>
+    /// Lightweight decay update - call this on game tick periodically
+    /// </summary>
+    private static void UpdateDecay(long nowMs)
+    {
+        if (StaticSettings == null) return;
+
+        // Update power decay (caller already checked if needed)
+        if (StaticSettings.EnablePowerRamping)
+        {
+            int baseIntensity = StaticSettings.Intensity;
+            float decayInterval = StaticSettings.PowerRampDownIntervalSec;
+            long decayIntervalMs = (long)(decayInterval * 1000f);
+
+            if (StaticLastPowerDecayTick == 0)
+            {
+                StaticLastPowerDecayTick = nowMs;
+                return; // Skip first tick
+            }
+
+            if (nowMs - StaticLastPowerDecayTick >= decayIntervalMs)
+            {
+                float decayPct = StaticSettings.PowerRampDownPercentPerInterval;
+                float maxIntensity = StaticSettings.MaxIntensity;
+                float decayAmount = maxIntensity * (decayPct / 100f);
+                CurrentRampedIntensity = (int)System.Math.Round(System.Math.Max(baseIntensity, CurrentRampedIntensity - decayAmount));
+                StaticLastPowerDecayTick = nowMs;
+
+                if (StaticSettings.DebugMode)
+                {
+                    DebugLog($"Power decay: -{decayAmount:F1} -> {CurrentRampedIntensity}");
+                }
+
+                if (CurrentRampedIntensity <= baseIntensity)
+                {
+                    StaticLastPowerDecayTick = 0;
+                }
+            }
+        }
+
+        // Update duration decay (caller already checked if needed)
+        if (StaticSettings.EnableDurationRamping)
+        {
+            float baseDuration = StaticSettings.DurationSec;
+            float decayInterval = StaticSettings.DurationRampDownIntervalSec;
+            long decayIntervalMs = (long)(decayInterval * 1000f);
+
+            if (StaticLastDurationDecayTick == 0)
+            {
+                StaticLastDurationDecayTick = nowMs;
+                return; // Skip first tick
+            }
+
+            if (nowMs - StaticLastDurationDecayTick >= decayIntervalMs)
+            {
+                float decayPct = StaticSettings.DurationRampDownPercentPerInterval;
+                float maxDuration = StaticSettings.MaxDurationSec;
+                float decayAmount = maxDuration * (decayPct / 100f);
+                CurrentRampedDuration = System.Math.Max(baseDuration, CurrentRampedDuration - decayAmount);
+                StaticLastDurationDecayTick = nowMs;
+
+                if (StaticSettings.DebugMode)
+                {
+                    DebugLog($"Duration decay: -{decayAmount:F2} -> {CurrentRampedDuration:F2}");
+                }
+
+                if (CurrentRampedDuration <= baseDuration)
+                {
+                    StaticLastDurationDecayTick = 0;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Calculate ramped intensity - applies step increment only (decay handled separately)
+    /// </summary>
+    private static int CalculateRampedIntensity(int baseIntensity, long nowMs)
+    {
+        if (StaticSettings?.EnablePowerRamping != true)
+        {
+            CurrentRampedIntensity = baseIntensity;
+            return baseIntensity;
+        }
+
+        float stepPercent = System.Math.Clamp(StaticSettings.PowerRampStepPercent, 0f, 100f);
+        float maxIntensity = StaticSettings.MaxIntensity;
+        float current = CurrentRampedIntensity <= 0 ? baseIntensity : CurrentRampedIntensity;
+
+        float increment = maxIntensity * (stepPercent / 100f);
+        current = System.Math.Min(maxIntensity, current + increment);
+
+        CurrentRampedIntensity = (int)System.Math.Round(current);
+        DebugLog($"Power step: base={baseIntensity}, step={stepPercent}% of max({maxIntensity}) = {increment:F1}, final={CurrentRampedIntensity}");
+        return CurrentRampedIntensity;
+    }
+
+    /// <summary>
+    /// Calculate ramped duration - applies step increment only (decay handled separately)
+    /// </summary>
+    private static float CalculateRampedDuration(float baseDuration, long nowMs)
+    {
+        if (StaticSettings?.EnableDurationRamping != true)
+        {
+            CurrentRampedDuration = baseDuration;
+            return baseDuration;
+        }
+
+        float stepPercent = System.Math.Clamp(StaticSettings.DurationRampStepPercent, 0f, 100f);
+        float maxDuration = StaticSettings.MaxDurationSec;
+        float current = CurrentRampedDuration <= 0f ? baseDuration : CurrentRampedDuration;
+
+        float increment = maxDuration * (stepPercent / 100f);
+        current = System.Math.Min(maxDuration, current + increment);
+
+        CurrentRampedDuration = current;
+        DebugLog($"Duration step: base={baseDuration:F2}, step={stepPercent}% of max({maxDuration:F2}) = {increment:F2}, final={CurrentRampedDuration:F2}");
+        return CurrentRampedDuration;
+    }    // Cache the API URL to avoid repeated string operations
     private static string _cachedApiUrl = "";
     private static string? _cachedApiUrlBase = null;
 
@@ -392,7 +686,20 @@ public class VintageShockSystem : ModSystem
     {
         try
         {
-            int durationMs = (int)(durationSec * 1000);
+            long now = capi.World.ElapsedMilliseconds;
+
+            // Apply ramping if enabled (per-shock step toward max with decay between shocks)
+            int finalIntensity = CalculateRampedIntensity(intensity, now);
+            float finalDuration = CalculateRampedDuration(durationSec, now);
+
+            // Start decay listener if ramping is active
+            EnsureDecayListenerActive();
+
+            System.Threading.Interlocked.Exchange(ref StaticLastShockTime, now);
+
+            int durationMs = (int)(finalDuration * 1000);
+
+            DebugLog($"Shock payload => intensity: {finalIntensity}, durationMs: {durationMs}");
 
             // Build JSON using string interpolation (compiler optimized)
             var jsonPayload = $"{{\"shocks\":[{{\"id\":\"{deviceId}\",\"type\":\"Shock\",\"intensity\":{intensity},\"duration\":{durationMs}}}]}}";
@@ -408,7 +715,7 @@ public class VintageShockSystem : ModSystem
             using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, _cachedApiUrl);
             request.Headers.Add("Open-Shock-Token", apiToken);
             request.Headers.Add("Accept", "application/json");
-            request.Headers.Add("User-Agent", "VintageShock/0.0.2");
+            request.Headers.Add("User-Agent", "VintageShock/0.0.3");
             request.Content = new System.Net.Http.StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             await HttpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
@@ -477,7 +784,8 @@ public class VintageShockSystem : ModSystem
                         $"  Triggers:\n" +
                         $"    - Player Death: {settings.OnPlayerDeath}\n" +
                         $"    - Player Damage: {settings.OnPlayerDamage}\n" +
-                        $"    - Hurt Other: {settings.OnPlayerHurtOther}";
+                        $"    - Hurt Other: {settings.OnPlayerHurtOther}\n" +
+                        $"  Debug Mode: {settings.DebugMode}";
             return TextCommandResult.Success(status);
         }
 
@@ -531,4 +839,20 @@ public sealed class VintageShockSettings
     public bool OnPlayerDeath { get; set; } = true;
     public bool OnPlayerDamage { get; set; } = false;
     public bool OnPlayerHurtOther { get; set; } = false;
+    public bool DebugMode { get; set; } = false;
+
+    // Power ramping settings
+    public bool EnablePowerRamping { get; set; } = false;
+    public float PowerRampStepPercent { get; set; } = 10.0f; // per-shock increase toward max
+    public float PowerRampDownPercentPerInterval { get; set; } = 5.0f; // percent to decay per interval
+    public float PowerRampDownIntervalSec { get; set; } = 5.0f;
+    public int MaxIntensity { get; set; } = 100;
+
+    // Duration ramping settings
+    public bool EnableDurationRamping { get; set; } = false;
+    public float DurationRampStepPercent { get; set; } = 10.0f; // per-shock increase toward max
+    public float DurationRampDownPercentPerInterval { get; set; } = 5.0f; // percent to decay per interval
+    public float DurationRampDownIntervalSec { get; set; } = 5.0f;
+    public float MaxDurationSec { get; set; } = 65.0f;
+
 }

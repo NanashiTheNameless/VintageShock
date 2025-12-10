@@ -10,20 +10,38 @@
       },
       "ON_PLAYER_DEATH": {
         "name": "on-player-death",
-        "weight": 3.1,
+        "weight": 2.33,
         "comment": "Trigger shock when the player dies",
         "default": true
       },
       "ON_PLAYER_DAMAGE": {
         "name": "on-player-damage",
-        "weight": 3.2,
+        "weight": 2.31,
         "comment": "Trigger shock when the player takes damage",
         "default": false
       },
       "ON_PLAYER_HURT_OTHER": {
         "name": "on-player-hurt-other",
-        "weight": 3.3,
+        "weight": 2.32,
         "comment": "Trigger shock when the player hurts another entity",
+        "default": false
+      },
+      "ENABLE_POWER_RAMPING": {
+        "name": "enable-power-ramping",
+        "weight": 2.5,
+        "comment": "Ramp shock intensity up/down over time",
+        "default": false
+      },
+      "ENABLE_DURATION_RAMPING": {
+        "name": "enable-duration-ramping",
+        "weight": 2.6,
+        "comment": "Ramp shock duration up/down over time",
+        "default": false
+      },
+      "DEBUG_MODE": {
+        "name": "debug-mode",
+        "weight": 9.9,
+        "comment": "Enable extra VintageShock debug logging to chat",
         "default": false
       }
     },
@@ -58,6 +76,17 @@
           "max": 100,
           "step": 1
         }
+      },
+      "MAX_INTENSITY": {
+        "name": "max-intensity",
+        "weight": 2.70,
+        "comment": "Peak intensity during ramping (0-100)",
+        "default": 100,
+        "range": {
+          "min": 1,
+          "max": 100,
+          "step": 1
+        }
       }
     },
     "float": {
@@ -69,6 +98,83 @@
         "range": {
           "min": 0.5,
           "max": 65,
+          "step": 0.5
+        }
+      },
+      "POWER_RAMP_STEP_PERCENT": {
+        "name": "power-ramp-step-percent",
+        "weight": 2.71,
+        "comment": "Percent of remaining intensity gap added per shock",
+        "default": 10.0,
+        "range": {
+          "min": 1.0,
+          "max": 100.0,
+          "step": 0.5
+        }
+      },
+      "POWER_RAMP_DOWN_PERCENT": {
+        "name": "power-ramp-down-percent",
+        "weight": 2.72,
+        "comment": "Percent intensity decayed each interval after ramp-up",
+        "default": 5.0,
+        "range": {
+          "min": 1.0,
+          "max": 100.0,
+          "step": 0.5
+        }
+      },
+      "POWER_RAMP_DOWN_INTERVAL_SEC": {
+        "name": "power-ramp-down-interval-sec",
+        "weight": 2.73,
+        "comment": "Interval in seconds between intensity decay steps",
+        "default": 5.0,
+        "range": {
+          "min": 1.0,
+          "max": 20.0,
+          "step": 0.5
+        }
+      },
+      "DURATION_RAMP_STEP_PERCENT": {
+        "name": "duration-ramp-step-percent",
+        "weight": 2.81,
+        "comment": "Percent of remaining duration gap added per shock",
+        "default": 10.0,
+        "range": {
+          "min": 1.0,
+          "max": 100.0,
+          "step": 0.5
+        }
+      },
+      "DURATION_RAMP_DOWN_PERCENT": {
+        "name": "duration-ramp-down-percent",
+        "weight": 2.82,
+        "comment": "Percent duration decayed each interval after ramp-up",
+        "default": 5.0,
+        "range": {
+          "min": 1.0,
+          "max": 100.0,
+          "step": 0.5
+        }
+      },
+      "DURATION_RAMP_DOWN_INTERVAL_SEC": {
+        "name": "duration-ramp-down-interval-sec",
+        "weight": 2.83,
+        "comment": "Interval in seconds between duration decay steps",
+        "default": 5.0,
+        "range": {
+          "min": 1.0,
+          "max": 20.0,
+          "step": 0.5
+        }
+      },
+      "MAX_DURATION_SEC": {
+        "name": "max-duration-sec",
+        "weight": 2.80,
+        "comment": "Peak duration during ramping (seconds)",
+        "default": 65.0,
+        "range": {
+          "min": 1.0,
+          "max": 65.0,
           "step": 0.5
         }
       }
@@ -93,7 +199,17 @@
     {
       "type": "title",
       "title": "Trigger Events",
-      "weight": 3.0
+      "weight": 2.3
+    },
+    {
+      "type": "title",
+      "title": "Power Ramping",
+      "weight": 2.7
+    },
+    {
+      "type": "title",
+      "title": "Duration Ramping",
+      "weight": 2.8
     }
   ]
 }

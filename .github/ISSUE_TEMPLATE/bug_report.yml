@@ -62,8 +62,8 @@ body:
     id: version
     attributes:
       label: VintageShock Version
-      description: Which version of VintageShock are you using? (e.g., 0.0.2)
-      placeholder: "0.0.2"
+      description: Which version of VintageShock are you using? (e.g., 0.0.3)
+      placeholder: "0.0.3"
     validations:
       required: true
 

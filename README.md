@@ -129,7 +129,7 @@ Request format:
 }
 ```
 
-Authentication: AOI token in `Open-Shock-Token` header
+Authentication: API token in `Open-Shock-Token` header
 
 ## Notes
 

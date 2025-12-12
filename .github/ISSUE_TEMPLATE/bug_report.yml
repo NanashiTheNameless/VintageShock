@@ -94,11 +94,18 @@ body:
       required: true
 
   - type: input
-    id: device
+    id: devicesw
     attributes:
-      label: OpenShock Device Model
-      description: What OpenShock device are you using?
+      label: OpenShock Device Software version
+      description: What OpenShock version is your device running?
       placeholder: "e.g., OpenShock v0.x.x"
+
+  - type: input
+    id: devicehw
+    attributes:
+      label: OpenShock Device Hardware
+      description: What OpenShock hardware do you have? (If you dont know exactly just say what vendor you got it from)
+      placeholder: "e.g., Wemos Lolin S3 OpenSmart RF Module"
 
   - type: textarea
     id: logs

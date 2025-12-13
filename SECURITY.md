@@ -12,7 +12,7 @@
 
 ## Reporting a Vulnerability
 
-***Please note: As this is free software which offers no income for me I am not offering a bug-bounty of any kind at this time.***\
+***Please note: As this is free software which offers no income for me I am not offering a bug-bounty of any kind at this time.***
 
 Please open a [Bug Report](<https://github.com/NanashiTheNameless/VintageShock/issues/new?template=bug_report.yml>) or start a [PR](<https://github.com/NanashiTheNameless/VintageShock/pulls>) if you have identified any issues.
 

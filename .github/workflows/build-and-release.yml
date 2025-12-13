@@ -27,7 +27,7 @@ jobs:
     - name: Download Vintage Story dependencies
       run: |
         mkdir -p /opt/vintagestory
-        wget -q https://cdn.vintagestory.at/gamefiles/stable/vs_server_linux-x64_1.21.5.tar.gz -O vs_server_linux-x64.tar.gz
+        wget -q https://cdn.vintagestory.at/gamefiles/stable/vs_server_linux-x64_1.21.6.tar.gz -O vs_server_linux-x64.tar.gz
         tar -xzf vs_server_linux-x64.tar.gz -C /opt/vintagestory
 
     - name: Build mod

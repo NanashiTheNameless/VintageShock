@@ -90,7 +90,7 @@ Configuration is managed through ConfigLib. Access settings via:
 Requirements:
 
 - .NET SDK 8.0+
-- Vintage Story 1.21.5 or newer
+- Vintage Story 1.21.6 or newer
 
 Build command:
 

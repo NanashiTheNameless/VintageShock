@@ -39,4 +39,4 @@ If you wish to disclose any vulnerabilities you have found privately you may use
 
 ## Data handling
 
-- Do not include personal data, access tokens, or printer credentials in reports or attachments.
+- Do not include personal data, access tokens, or credentials in reports or attachments.

@@ -98,7 +98,7 @@ body:
     attributes:
       label: OpenShock Device Software version
       description: What OpenShock version is your device running?
-      placeholder: "e.g., OpenShock v0.x.x"
+      placeholder: "e.g., OpenShock v1.x.x"
 
   - type: input
     id: devicehw

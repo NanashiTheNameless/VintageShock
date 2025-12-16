@@ -75,7 +75,7 @@ jobs:
         compression-level: 0
 
     - name: Deploy nightly build
-      if: github.ref_type != 'tag'
+      if: github.ref_type != 'tag' && github.event_name != 'pull_request'
       uses: NanashiTheNameless/deploy-nightly@master
       with:
         upload_url: https://uploads.github.com/repos/NanashiTheNameless/VintageShock/releases/268950530/assets{?name,label}
@@ -86,7 +86,7 @@ jobs:
         max_releases: 6
 
     - name: Update release tag
-      if: github.ref_type != 'tag'
+      if: github.ref_type != 'tag' && github.event_name != 'pull_request'
       uses: NanashiTheNameless/action-create-tag@main
       with:
         tag: "Nightly-Auto-Build"

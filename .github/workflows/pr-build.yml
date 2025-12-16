@@ -138,7 +138,7 @@ jobs:
               '',
               'A PR build has been generated.',
               '',
-              `**Download**: [VintageShock-PR${{ steps.vars.outputs.PR_NUMBER }}](https://nightly.link/${repo.owner}/${repo.repo}/actions/runs/${runId}/VintageShock-PR${{ steps.vars.outputs.PR_NUMBER }})`,
+              `**Download**: [VintageShock-PR${{ steps.vars.outputs.PR_NUMBER }}](https://nightly.link/${repo.owner}/${repo.repo}/actions/runs/${runId})`,
               '',
               '**Build Info**:',
               `- Commit: \`${{ steps.vars.outputs.GIT_SHA7 }}\``,

@@ -70,7 +70,7 @@ jobs:
         echo "artifact_file=$FILE" >> $GITHUB_OUTPUT
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: VintageShock
         path: ${{ steps.get_artifact.outputs.artifact_file }}

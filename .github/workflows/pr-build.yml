@@ -112,7 +112,7 @@ jobs:
           echo "zip_name=$(basename "$zip_path")" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: VintageShock-PR${{ steps.vars.outputs.PR_NUMBER }}
           path: ${{ steps.locate_zip.outputs.zip_path }}

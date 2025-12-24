@@ -1,5 +1,6 @@
 src/obj
 src/bin
 mods/
+Logs/
 VintageShock-*.zip
 megalinter-reports/

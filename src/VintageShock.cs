@@ -461,10 +461,6 @@ public class VintageShockSystem : ModSystem
     /// </summary>
     public static bool OnReceiveDamageDetectDamage(Entity __instance, DamageSource damageSource, float damage)
     {
-        // Fast early exit if mod is disabled
-        if (StaticSettings?.Enabled != true)
-            return true;
-
         // Fast early exits
         if (__instance.Api?.Side != EnumAppSide.Server)
             return true;
@@ -476,10 +472,6 @@ public class VintageShockSystem : ModSystem
         // Check if this is a player entity taking damage
         if (__instance is EntityPlayer player && player.Player is IServerPlayer serverPlayer)
         {
-            // Skip if both death and damage triggers are disabled
-            if (!StaticSettings.OnPlayerDeath && !StaticSettings.OnPlayerDamage)
-                return true;
-
             // Check if fatal damage (health drops to 0)
             var healthTree = player.WatchedAttributes.GetTreeAttribute("health");
             if (healthTree != null)
@@ -516,7 +508,7 @@ public class VintageShockSystem : ModSystem
             }
         }
         // Check if the damage source is a player (player damaged something else)
-        else if (StaticSettings.OnPlayerHurtOther && damage > 0 && damageSource?.SourceEntity is EntityPlayer attackingPlayer &&
+        else if (damage > 0 && damageSource?.SourceEntity is EntityPlayer attackingPlayer &&
                  attackingPlayer.Player is IServerPlayer attackerServerPlayer)
         {
             serverChannel.SendPacket(new VintageShockDamageOtherMessage { DamageAmount = damage }, attackerServerPlayer);
@@ -715,7 +707,7 @@ public class VintageShockSystem : ModSystem
             using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, _cachedApiUrl);
             request.Headers.Add("Open-Shock-Token", apiToken);
             request.Headers.Add("Accept", "application/json");
-            request.Headers.Add("User-Agent", "VintageShock/0.0.5");
+            request.Headers.Add("User-Agent", "VintageShock/0.0.6");
             request.Content = new System.Net.Http.StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             await HttpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);

@@ -68,15 +68,15 @@ jobs:
             const zipName = process.env.ZIP_NAME;
             const runId = ${{ github.event.workflow_run.id }};
             const { repo, owner } = context.repo;
-            
+
             // Verify PR number is numeric
             if (!Number.isInteger(prNumber) || prNumber <= 0) {
               core.setFailed('Invalid PR number');
               return;
             }
-            
+
             const artifactName = `pr-build-${prNumber}`;
-            
+
             const commentBody = [
               '## [BUILD] Testing/Debug Build Ready',
               '',
@@ -112,7 +112,7 @@ jobs:
               '',
               '**BY DOWNLOADING THIS BUILD, YOU ACKNOWLEDGE AND ACCEPT ALL RISKS.**',
             ].join('\n');
-            
+
             await github.rest.issues.createComment({
               owner,
               repo,

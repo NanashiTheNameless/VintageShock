@@ -7,6 +7,10 @@ on:
   push:
     branches:
       - main
+    tags:
+      - '*.*.*'
+  release:
+    types: [published, created]
   workflow_dispatch:
 
 jobs:
@@ -38,8 +42,8 @@ jobs:
       - name: Build mod
         run: dotnet build VintageShock.sln -c Release /p:GameDir="/opt/vintagestory"
 
-      - name: Set release asset variables (tag builds)
-        if: startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build'
+      - name: Set release asset variables (tag builds or release events)
+        if: (startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build') || github.event_name == 'release'
         id: asset_vars
         run: |
           FILE=$(ls VintageShock-*.zip | head -n1)
@@ -50,7 +54,7 @@ jobs:
           echo "asset_path=$FILE" >> $GITHUB_OUTPUT
           echo "asset_name=$(basename "$FILE")" >> $GITHUB_OUTPUT
 
-      - name: Release (tag builds)
+      - name: Upload to release (tag builds)
         if: startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build'
         uses: softprops/action-gh-release@v2
         env:
@@ -60,6 +64,15 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: false
+          files: "${{ steps.asset_vars.outputs.asset_path }}"
+
+      - name: Upload to release (release events)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
           files: "${{ steps.asset_vars.outputs.asset_path }}"
 
       - name: Get build artifact filename

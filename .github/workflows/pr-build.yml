@@ -4,79 +4,42 @@ on:
   pull_request:
     branches:
       - main
-      - master
-  issue_comment:
-    types: [created]
+    paths-ignore:
+      - '.github/workflows/**'
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
 
 concurrency:
   group: pr-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
-  check-rebuild-command:
-    if: github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '/rebuild'
-    runs-on: ubuntu-latest
-    outputs:
-      is_owner: ${{ steps.check_owner.outputs.is_owner }}
-    steps:
-      - name: Check if commenter is repo owner
-        id: check_owner
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const comment = context.payload.comment;
-            const repo = context.repo;
-            const repoInfo = await github.rest.repos.get({ owner: repo.owner, repo: repo.repo });
-            const repoOwner = repoInfo.data.owner.login;
-            const commenter = comment.user.login;
-            core.info(`Repository owner: ${repoOwner}`);
-            core.info(`Commenter: ${commenter}`);
-            const isOwner = commenter === repoOwner;
-            core.setOutput('is_owner', isOwner ? 'true' : 'false');
-            await github.rest.reactions.createForIssueComment({ owner: repo.owner, repo: repo.repo, comment_id: comment.id, content: isOwner ? 'rocket' : 'confused' });
-            if (!isOwner) {
-              await github.rest.issues.createComment({ owner: repo.owner, repo: repo.repo, issue_number: context.issue.number, body: '[ERROR] Only the repository owner can trigger rebuilds.' });
-            }
-
   build:
-    if: always() && (github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && needs.check-rebuild-command.outputs.is_owner == 'true'))
-    needs: [check-rebuild-command]
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref || github.head_ref }}
 
-      - name: Post rebuild trigger comment
-        if: github.event_name == 'issue_comment' && needs.check-rebuild-command.outputs.is_owner == 'true'
-        id: rebuild_comment
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const response = await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body: '[REBUILD] Rebuild triggered by repository owner. Starting new build...' });
-            core.setOutput('comment_id', response.data.id);
-            core.exportVariable('REBUILD_COMMENT_ID', response.data.id);
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+          echo ${{ github.event.pull_request.head.sha }} > ./pr/SHA
 
       - name: Gather variables
         id: vars
         run: |
           GIT_SHA7=$(git rev-parse --short HEAD)
+          echo "GIT_SHA7=$GIT_SHA7"
           echo "GIT_SHA7=$GIT_SHA7" >> "$GITHUB_OUTPUT"
           DATE=$(date -u +'%Y.%m.%d')
+          echo "DATE=$DATE"
           echo "DATE=$DATE" >> "$GITHUB_OUTPUT"
-          if [ "${{ github.event_name }}" = "issue_comment" ]; then
-            PR_NUMBER=${{ github.event.issue.number }}
-          else
-            PR_NUMBER=${{ github.event.pull_request.number || 'manual' }}
-          fi
+          PR_NUMBER=${{ github.event.pull_request.number || 'manual' }}
+          echo "PR_NUMBER=$PR_NUMBER"
           echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Setup .NET
@@ -111,66 +74,11 @@ jobs:
           echo "zip_path=$zip_path" >> "$GITHUB_OUTPUT"
           echo "zip_name=$(basename "$zip_path")" >> "$GITHUB_OUTPUT"
 
-      - name: Upload artifact
+      - name: Upload PR info and build
         uses: actions/upload-artifact@v6
         with:
-          name: VintageShock-PR${{ steps.vars.outputs.PR_NUMBER }}
-          path: ${{ steps.locate_zip.outputs.zip_path }}
-          compression-level: 0
-
-      - name: Comment on PR with download link
-        if: always()
-        uses: actions/github-script@v8
-        with:
-          script: |
-            let prNumber;
-            if (context.eventName === 'issue_comment') {
-              prNumber = context.payload.issue.number;
-            } else {
-              prNumber = context.payload.pull_request.number;
-            }
-            const runId = context.runId;
-            const repo = context.repo;
-            const rebuildCommentId = process.env.REBUILD_COMMENT_ID || '';
-            const heading = context.eventName === 'issue_comment' ? '## [BUILD] PR Build Ready (rebuild complete)' : '## [BUILD] PR Build Ready';
-            const lines = [
-              heading,
-              '',
-              'A PR build has been generated.',
-              '',
-              `**Download**: [VintageShock-PR${{ steps.vars.outputs.PR_NUMBER }}](https://nightly.link/${repo.owner}/${repo.repo}/actions/runs/${runId})`,
-              '',
-              '**Build Info**:',
-              `- Commit: \`${{ steps.vars.outputs.GIT_SHA7 }}\``,
-              `- Date: \`${{ steps.vars.outputs.DATE }}\``,
-              `- Artifact: \`${{ steps.locate_zip.outputs.zip_name }}\``,
-              '',
-              '---',
-              '',
-              '## ⚠ CRITICAL WARNING - READ BEFORE DOWNLOADING ⚠',
-              '',
-              '**THIS IS AN UNVERIFIED PR BUILD FOR TESTING PURPOSES ONLY**',
-              '',
-              '⚠ DANGER - USE AT YOUR OWN RISK ⚠',
-              '',
-              '- ✖ NOT SAFE: This build has NOT been reviewed or tested for security vulnerabilities',
-              '- ✖ UNVERIFIED CODE: Contains unreviewed code changes that may be malicious or buggy',
-              '- ✖ NO WARRANTY: This build comes with ABSOLUTELY NO WARRANTY of any kind',
-              '- ✖ POTENTIAL RISKS: May contain malware, backdoors, data theft code, or cause device instability',
-              '- ✖ SAVE RISK: May crash your game or corrupt worlds; BACK UP YOUR SAVES',
-              '- ✖ SHOCK RISK: Shocks may trigger unexpectedly',
-              '',
-              '⚠ WARNING: DO NOT INSTALL UNLESS:',
-              '- ✔ You are an experienced player/dev who understands the risks',
-              '- ✔ You have reviewed the PR code changes thoroughly',
-              '- ✔ You accept full responsibility for any damage or data loss',
-              '- ✔ You understand this may compromise your device/server/world',
-              '',
-              '**BY DOWNLOADING THIS BUILD, YOU ACKNOWLEDGE AND ACCEPT ALL RISKS.**'
-            ];
-            const commentBody = lines.join('\n');
-            if (context.eventName === 'issue_comment' && rebuildCommentId) {
-              await github.rest.issues.updateComment({ owner: repo.owner, repo: repo.repo, comment_id: Number(rebuildCommentId), body: commentBody });
-            } else {
-              await github.rest.issues.createComment({ owner: repo.owner, repo: repo.repo, issue_number: prNumber, body: commentBody });
-            }
+          name: pr-build-${{ github.event.pull_request.number }}
+          path: |
+            pr/
+            ${{ steps.locate_zip.outputs.zip_path }}
+          retention-days: 14

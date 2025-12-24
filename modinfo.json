@@ -1,7 +1,7 @@
 {
   "name": "VintageShock",
   "modid": "vintageshock",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "VintageShock - Shocking Haptic Feedback for Vintage Story via the OpenShock API",
   "website": "https://github.com/NanashiTheNameless/VintageShock",
   "authors": ["NanashiTheNameless"],

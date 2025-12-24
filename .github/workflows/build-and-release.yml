@@ -14,87 +14,87 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "8.0.x"
 
-    - name: Clean potential old build assets (non-blocking, just in case)
-      run: |
-        rm -rf src/bin || true
-        rm -rf src/obj || true
-        rm -rf mods || true
-        rm -f VintageShock-*.zip || true
+      - name: Clean potential old build assets (non-blocking, just in case)
+        run: |
+          rm -rf src/bin || true
+          rm -rf src/obj || true
+          rm -rf mods || true
+          rm -f VintageShock-*.zip || true
 
-    - name: Download Vintage Story dependencies
-      run: |
-        mkdir -p /opt/vintagestory
-        wget -q https://cdn.vintagestory.at/gamefiles/stable/vs_server_linux-x64_1.21.6.tar.gz -O vs_server_linux-x64.tar.gz
-        tar -xzf vs_server_linux-x64.tar.gz -C /opt/vintagestory
+      - name: Download Vintage Story dependencies
+        run: |
+          mkdir -p /opt/vintagestory
+          wget -q https://cdn.vintagestory.at/gamefiles/stable/vs_server_linux-x64_1.21.6.tar.gz -O vs_server_linux-x64.tar.gz
+          tar -xzf vs_server_linux-x64.tar.gz -C /opt/vintagestory
 
-    - name: Build mod
-      run: dotnet build VintageShock.sln -c Release /p:GameDir="/opt/vintagestory"
+      - name: Build mod
+        run: dotnet build VintageShock.sln -c Release /p:GameDir="/opt/vintagestory"
 
-    - name: Set release asset variables (tag builds)
-      if: startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build'
-      id: asset_vars
-      run: |
-        FILE=$(ls VintageShock-*.zip | head -n1)
-        if [ -z "$FILE" ]; then
-          echo "No build artifact found" >&2
-          exit 1
-        fi
-        echo "asset_path=$FILE" >> $GITHUB_OUTPUT
-        echo "asset_name=$(basename "$FILE")" >> $GITHUB_OUTPUT
+      - name: Set release asset variables (tag builds)
+        if: startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build'
+        id: asset_vars
+        run: |
+          FILE=$(ls VintageShock-*.zip | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No build artifact found" >&2
+            exit 1
+          fi
+          echo "asset_path=$FILE" >> $GITHUB_OUTPUT
+          echo "asset_name=$(basename "$FILE")" >> $GITHUB_OUTPUT
 
-    - name: Release (tag builds)
-      if: startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build'
-      uses: softprops/action-gh-release@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref_name }}
-        name: ${{ github.ref_name }}
-        draft: false
-        prerelease: false
-        files: "${{ steps.asset_vars.outputs.asset_path }}"
+      - name: Release (tag builds)
+        if: startsWith(github.ref, 'refs/tags/') && github.ref_name != 'Nightly-Auto-Build'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: "${{ steps.asset_vars.outputs.asset_path }}"
 
-    - name: Get build artifact filename
-      id: get_artifact
-      run: |
-        FILE=$(ls VintageShock-*.zip | head -n1)
-        if [ -z "$FILE" ]; then
-          echo "No build artifact found" >&2
-          exit 1
-        fi
-        echo "artifact_file=$FILE" >> $GITHUB_OUTPUT
+      - name: Get build artifact filename
+        id: get_artifact
+        run: |
+          FILE=$(ls VintageShock-*.zip | head -n1)
+          if [ -z "$FILE" ]; then
+            echo "No build artifact found" >&2
+            exit 1
+          fi
+          echo "artifact_file=$FILE" >> $GITHUB_OUTPUT
 
-    - name: Upload artifact
-      uses: actions/upload-artifact@v6
-      with:
-        name: VintageShock
-        path: ${{ steps.get_artifact.outputs.artifact_file }}
-        compression-level: 0
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: VintageShock
+          path: ${{ steps.get_artifact.outputs.artifact_file }}
+          compression-level: 0
 
-    - name: Deploy nightly build
-      if: github.ref_type != 'tag' && github.event_name != 'pull_request'
-      uses: NanashiTheNameless/deploy-nightly@master
-      with:
-        upload_url: https://uploads.github.com/repos/NanashiTheNameless/VintageShock/releases/268950530/assets{?name,label}
-        release_id: 268950530
-        asset_path: ${{ steps.get_artifact.outputs.artifact_file }}
-        asset_name: VintageShock-AutoBuildNightly-$$.zip
-        asset_content_type: text/plain
-        max_releases: 6
+      - name: Deploy nightly build
+        if: github.ref_type != 'tag' && github.event_name != 'pull_request'
+        uses: NanashiTheNameless/deploy-nightly@master
+        with:
+          upload_url: https://uploads.github.com/repos/NanashiTheNameless/VintageShock/releases/268950530/assets{?name,label}
+          release_id: 268950530
+          asset_path: ${{ steps.get_artifact.outputs.artifact_file }}
+          asset_name: VintageShock-AutoBuildNightly-$$.zip
+          asset_content_type: text/plain
+          max_releases: 6
 
-    - name: Update release tag
-      if: github.ref_type != 'tag' && github.event_name != 'pull_request'
-      uses: NanashiTheNameless/action-create-tag@main
-      with:
-        tag: "Nightly-Auto-Build"
-        tag_exists_error: false
-        force_push_tag: true
-        message: "Nightly Auto Build"
+      - name: Update release tag
+        if: github.ref_type != 'tag' && github.event_name != 'pull_request'
+        uses: NanashiTheNameless/action-create-tag@main
+        with:
+          tag: "Nightly-Auto-Build"
+          tag_exists_error: false
+          force_push_tag: true
+          message: "Nightly Auto Build"

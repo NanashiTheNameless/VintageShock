@@ -79,7 +79,7 @@
       },
       "MAX_INTENSITY": {
         "name": "max-intensity",
-        "weight": 2.70,
+        "weight": 2.7,
         "comment": "Peak intensity during ramping (0-100)",
         "default": 100,
         "range": {
@@ -169,7 +169,7 @@
       },
       "MAX_DURATION_SEC": {
         "name": "max-duration-sec",
-        "weight": 2.80,
+        "weight": 2.8,
         "comment": "Peak duration during ramping (seconds)",
         "default": 65.0,
         "range": {

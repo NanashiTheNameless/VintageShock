@@ -70,7 +70,7 @@ Configuration is managed through ConfigLib. Access settings via:
 
 - **Enabled**: Enable or disable the entire mod
 - **API URL**: The full URL to your shock API endpoint (default: `https://api.openshock.app/`)
-- **API Token**: Bearer token for authentication with the OpenShock API (get from https://app.openshock.app/)
+- **API Token**: Bearer token for authentication with the OpenShock API (get from <https://app.openshock.app/>)
 - **Device ID**: The ID of the device you want to trigger
 - **Intensity**: Shock intensity (0-100)
 - **Duration**: Shock duration in milliseconds (300-65535)

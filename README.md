@@ -1,3 +1,6 @@
+# **NOTICE: DUE TO MENTAL HEALTH ISSUES I AM STOPPING WORK ON THIS PROJECT FOR A WHILE.**
+# I WILL STILL REVIEW PRs.
+
 # VintageShock
 
 Shocking Haptic Feedback for Vintage Story via the OpenShock API based on in-game events.

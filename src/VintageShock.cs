@@ -707,7 +707,7 @@ public class VintageShockSystem : ModSystem
             using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Post, _cachedApiUrl);
             request.Headers.Add("Open-Shock-Token", apiToken);
             request.Headers.Add("Accept", "application/json");
-            request.Headers.Add("User-Agent", "VintageShock/0.0.6");
+            request.Headers.Add("User-Agent", "VintageShock/0.0.7");
             request.Content = new System.Net.Http.StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             await HttpClient.SendAsync(request, System.Net.Http.HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);

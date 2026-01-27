@@ -19,18 +19,19 @@ See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 
 ### What You Must Do
 
-- Provide proper attribution to the licensor (NanashiTheNameless)
+- Provide proper attribution to the licensor (me)
 - Provide source code if you distribute compiled versions
 - Include the full license with all distributions
 - Maintain the ethical policy in your adaptations
 
 ### What You Cannot Do
 
+- Use it for racism, xenophobia, queerphobia, transphobia, homophobia, enbyphobia, misogyny, misandry, and/or sexism.
 - Use it for commercial purposes (sales, subscriptions, SaaS, ads, etc.)
 - Train commercial AI or ML models with it
 - Use it to enable discrimination or violence
 - Alter or remove the license terms
-- Deploy it for law enforcement, military, or immigration enforcement
+- Use it as/for law enforcement, military, or immigration enforcement
 
 ### Key Points
 
@@ -38,11 +39,13 @@ See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 - The licensor can revoke your rights with 7 days notice
 - No warranties or guarantees are provided
 - Large-scale deployments (100+ users) require public compliance documentation
-- Filing patent lawsuits automatically terminates your license
+- Filing patent lawsuits related to the work or its content automatically terminates your license
 
 ### Bottom Line
 
 Free for ethical, non-commercial use, with the requirement to share your code and keep the license intact.
+
+---
 
 ## Features
 

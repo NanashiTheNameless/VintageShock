@@ -109,32 +109,17 @@ The mod will be packaged as `VintageShock-<version>.zip` in the workspace root.
 
 1. Download or build `VintageShock.zip`
 2. Copy the zip file to your Vintage Story `Mods` folder
-3. Install [ConfigLib](<https://mods.vintagestory.at/configlib>) and [ImGui](<https://mods.vintagestory.at/imguiif>) not already installed
+3. Install [ConfigLib](<https://mods.vintagestory.at/configlib>) and [ImGui](<https://mods.vintagestory.at/imgui>) if not already installed
 4. Start the game and configure via ConfigLib settings menu or edit `ModConfig/vintageshock.yaml`
 
-## Usage
+## Usage/Setup
 
 1. Get your OpenShock API token from <https://app.openshock.app/>
-2. Get your device ID from your OpenShock device
-3. Configure via ConfigLib in-game menu or edit the YAML file directly (copypaste doesnt appear to work in ConfigLib so directly editing the .yaml may be preferrable)
-4. Use `.vshock test` to verify your setup works
-5. Play the game - shocks will trigger based on your configured events
-
-## OpenShock API Details
-
-API Endpoint: `https://api.openshock.app/`
-
-Request format:
-
-```json
-{
-  "device_id": "your-device-id",
-  "duration_ms": 300,
-  "intensity": 30
-}
-```
-
-Authentication: API token in `Open-Shock-Token` header
+2. Get the device ID for your OpenShock device
+3. Configure settings via ConfigLib in-game menu or edit the YAML file directly (copypaste doesnt appear to work in ConfigLib so directly editing the .yaml may be preferrable)
+4. Use `.vshock reload` to reload the settings from the config file
+5. Use `.vshock test` to verify your setup works
+6. Play the game - shocks will trigger based on your configured events
 
 ## Notes
 

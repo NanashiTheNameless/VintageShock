@@ -7,6 +7,8 @@ Shocking Haptic Feedback for Vintage Story via the OpenShock API based on in-gam
 This software is NOT OSI Compliant!\
 See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 
+---
+
 ## NNCL v1.3 License TL;DR
 
 **This is a simplified summary and does not replace the full license terms.**

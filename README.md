@@ -21,7 +21,7 @@ See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 
 ### What You Must Do
 
-- Provide proper attribution to the licensor (me)
+- Provide proper attribution to the licensor (NanashiTheNameless)
 - Provide source code if you distribute compiled versions
 - Include the full license with all distributions
 - Maintain the ethical policy in your adaptations

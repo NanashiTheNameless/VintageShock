@@ -8,7 +8,7 @@ on:
     branches:
       - main
     tags:
-      - '*.*.*'
+      - "*.*.*"
   release:
     types: [published]
   workflow_dispatch:
@@ -101,7 +101,7 @@ jobs:
           asset_path: ${{ steps.get_artifact.outputs.artifact_file }}
           asset_name: VintageShock-AutoBuildNightly-$$.zip
           asset_content_type: text/plain
-          max_releases: 6
+          max_releases: 1
 
       - name: Update release tag
         if: github.ref_type != 'tag' && github.event_name != 'pull_request'

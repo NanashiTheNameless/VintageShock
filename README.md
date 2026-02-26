@@ -2,6 +2,12 @@
 
 Shocking Haptic Feedback for Vintage Story via the OpenShock API based on in-game events.
 
+---
+
+## **[BUG REPORTS ARE ONLY ACCEPTED HERE AND ARE NOT ACCEDTED ON THE MODDB PAGE](<https://github.com/NanashiTheNameless/VintageShock/issues/new/choose>)**
+
+---
+
 ## !! **NON-FREE/PROPRIETARY License Warning**
 
 This software is NOT OSI Compliant!\

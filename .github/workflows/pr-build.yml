@@ -75,7 +75,7 @@ jobs:
           echo "zip_name=$(basename "$zip_path")" >> "$GITHUB_OUTPUT"
 
       - name: Upload PR info and build
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: pr-build-${{ github.event.pull_request.number }}
           path: |

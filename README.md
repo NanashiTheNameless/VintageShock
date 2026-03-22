@@ -15,7 +15,7 @@ See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 
 ---
 
-## NNCL v1.3 License TL;DR
+## NNCL v1.4 License TL;DR
 
 **This is a simplified summary and does not replace the full license terms.**
 
@@ -24,6 +24,7 @@ See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 - Use, study, modify, and share the work for free
 - Create and distribute modified versions
 - Deploy it for personal and non-commercial purposes
+- Accept **Non-Rewarded Donations** as defined in [section 1](<https://github.com/NanashiTheNameless/VintageShock/blob/main/LICENSE.md#1-definitions>)
 
 ### What You Must Do
 

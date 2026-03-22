@@ -1,4 +1,4 @@
-# Nameless Nanashi Code License (NNCL) v1.3
+# Nameless Nanashi Code License (NNCL) v1.4
 
 **Copyright © 2025 [NamelessNanashi](<https://git.NamelessNanashi.dev/>)**
 
@@ -59,12 +59,13 @@ All uses must be Non-Commercial. The following are **not** allowed without a sep
 - Using the Work to train or fine-tune any machine-learning or AI model for commercial use or deployment, or including the Work in datasets intended for any monetized or commercial ML/AI activity.
 
 You may charge **actual, verifiable cost of physical media and postage only**, with no markup or indirect monetization.
+You may accept **Non-Rewarded Donations** as defined in section 1.
 
 ---
 
 ## 6. Strong Share-Alike (Same License)
 
-Any Adaptation You Share must be licensed **only** under this **NNCL v1.3** (or later) license, in full, with the Policy intact. No other license (including dual-licensing by You) may be applied to the Adaptation You Share, and You may not add field-of-use, patent, or other restrictions conflicting with this license.
+Any Adaptation You Share must be licensed **only** under this **NNCL v1.4** (or later) license, in full, with the Policy intact. No other license (including dual-licensing by You) may be applied to the Adaptation You Share, and You may not add field-of-use, patent, or other restrictions conflicting with this license.
 
 **Network use (including providing functionality via network, SaaS, or API) constitutes Sharing** for the purpose of this section and triggers all obligations above (Attribution, Source, Policy, and Same-License).
 

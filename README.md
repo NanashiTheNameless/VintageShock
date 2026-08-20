@@ -15,7 +15,7 @@ See the [LICENSE.md](<LICENSE.md>) file for more complete details.
 
 ---
 
-## NNCL v1.4 License TL;DR
+## NNCL v1.5 License TL;DR
 
 **This is a simplified summary and does not replace the full license terms.**
 
